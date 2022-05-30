@@ -4,7 +4,7 @@ require("dotenv").config();
 const app = express();
 const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const res = require("express/lib/response");
 const port = process.env.PORT || 5000;
 
@@ -35,7 +35,6 @@ function verifyJWT(req, res, next) {
 }
 
 function sendPaymentConfirmationEmail(order) {
-
   var email = {
     from: process.env.EMAIL_SENDER,
     to: order.email,
@@ -51,7 +50,7 @@ function sendPaymentConfirmationEmail(order) {
         <p>Rupsha, Khulna</p>
         <p>Bangladesh</p>
       </div>
-    `
+    `,
   };
 }
 
@@ -69,22 +68,6 @@ async function run() {
       const result = await productCollection.insertOne(product);
       res.send(result);
     });
-    // Get logged user order
-    app.get("/my-order", async (req, res) => {
-      const email = req.query.email;
-      const query = { email: email };
-      const cursor = orderCollection.find(query);
-      const items = await cursor.toArray();
-      res.send(items);
-    });
-    // Get single order by id
-    app.get('/my-order/:id', async(req, res) =>{
-      const id = req.params.id;
-      const query = {_id: ObjectId(id)};
-      const order = await orderCollection.findOne(query);
-      res.send(order);
-    })
-    
     // Get product from database
     app.get("/product", async (req, res) => {
       const query = {};
@@ -99,19 +82,6 @@ async function run() {
       const result = await productCollection.findOne(query);
       res.send(result);
     });
-    // create a review
-    app.post('/review', async (req, res)=>{
-      const testimonial = req.body;
-      const result = await reviewCollection.insertOne(testimonial);
-      res.send(result);
-    });
-    // get item
-    app.get('/review', async(req, res)=>{
-      const query = {};
-      const cursor = reviewCollection.find(query);
-      const review = await cursor.toArray();
-      res.send(review);
-  });
     // update product from client
     app.put("/product/:id", async (req, res) => {
       const id = req.params.id;
@@ -135,6 +105,21 @@ async function run() {
       );
       res.send(result);
     });
+    // Get logged user order
+    app.get("/my-order", async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+      const cursor = orderCollection.find(query);
+      const items = await cursor.toArray();
+      res.send(items);
+    });
+    // Get single order by id
+    app.get("/my-order/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const order = await orderCollection.findOne(query);
+      res.send(order);
+    });
     // create order from client
     app.post("/order", async (req, res) => {
       const order = req.body;
@@ -142,39 +127,27 @@ async function run() {
       res.send(result);
     });
     // Delete my order by id
-    app.delete('/my-order/:id', async(req, res) =>{
+    app.delete("/my-order/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: ObjectId(id)};
+      const query = { _id: ObjectId(id) };
       const result = await orderCollection.deleteOne(query);
       res.send(result);
-    })
-    // Get client secret from backend via payment intent post api
-    app.post('/create-payment-intent', async(req, res) =>{
-      const order = req.body;
-      const price = order.price;
-      const amount = price*100;
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount : amount,
-        currency: 'usd',
-        payment_method_types:['card']
-      });
-      res.send({clientSecret: paymentIntent.client_secret})
     });
     // updated payment order
-    app.patch('/order/:id', async(req, res) =>{
-      const id  = req.params.id;
+    app.patch("/order/:id", async (req, res) => {
+      const id = req.params.id;
       const payment = req.body;
-      const filter = {_id: ObjectId(id)};
+      const filter = { _id: ObjectId(id) };
       const updatedDoc = {
         $set: {
           paid: true,
-          transactionId: payment.transactionId
-        }
-      }
+          transactionId: payment.transactionId,
+        },
+      };
       const result = await paymentCollection.insertOne(payment);
       const updatedOrder = await orderCollection.updateOne(filter, updatedDoc);
       res.send(updatedOrder);
-    })
+    });
     // Get user from database
     app.get("/user", async (req, res) => {
       const query = {};
@@ -241,15 +214,41 @@ async function run() {
       const isAdmin = user?.role === "admin";
       res.send({ admin: isAdmin });
     });
+    // Get client secret from backend via payment intent post api
+    app.post("/create-payment-intent", async (req, res) => {
+      const order = req.body;
+      const price = order.price;
+      const amount = price * 100;
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
+      res.send({ clientSecret: paymentIntent.client_secret });
+    });
+    // create a review
+    app.post("/review", async (req, res) => {
+      const testimonial = req.body;
+      const result = await reviewCollection.insertOne(testimonial);
+      res.send(result);
+    });
+    // get item
+    app.get("/review", async (req, res) => {
+      const query = {};
+      const cursor = reviewCollection.find(query);
+      const review = await cursor.toArray();
+      res.send(review);
+    });
   } finally {
+
   }
 }
 run().catch(console.dir);
 
 app.get("/", (req, res) => {
-  res.send("Hello From Toolkits Server!");
+  res.send("Hello From Toolkits Server By Suraiya Akter Trishna!");
 });
 
 app.listen(port, () => {
-  console.log(`Toolkits App listening on port ${port}`);
+  console.log(`Toolkits App listening on port ${port} Create by Suraiya Akter Trishna`);
 });
